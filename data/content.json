@@ -1,23 +1,23 @@
 {
   "subjects": [
     {
-      "id": "subj-magyar",
-      "name": "Magyar nyelv és irodalom",
-      "createdAt": "2026-03-08T00:00:00.000Z",
-      "updatedAt": "2026-03-08T00:00:00.000Z",
+      "id": "subj-6es8w8r8-mmi1ve00",
+      "name": "Töri",
       "pages": [
         {
-          "id": "page-minta",
-          "title": "Minta tétel",
-          "content": "<h2>Minta jegyzet</h2><p>Ez egy induló oldal. Átírhatod, törölheted, vagy létrehozhatsz új tantárgyakat és oldalakat.</p><p><strong>Tipp:</strong> képet beilleszthetsz sima Ctrl+V-vel is, vagy a <em>Kép csatolása</em> gombbal.</p>",
-          "createdAt": "2026-03-08T00:00:00.000Z",
-          "updatedAt": "2026-03-08T00:00:00.000Z"
+          "id": "page-1cmiohk3-mmi1vlia",
+          "title": "1. tétel",
+          "content": "<br><p></p><div bis_skin_checked=\"1\">asd</div>",
+          "createdAt": "2026-03-08T17:52:46.498Z",
+          "updatedAt": "2026-03-08T18:02:00.399Z"
         }
-      ]
+      ],
+      "createdAt": "2026-03-08T17:52:36.768Z",
+      "updatedAt": "2026-03-08T17:53:45.612Z"
     }
   ],
   "meta": {
     "version": 1,
-    "lastSavedAt": "2026-03-08T00:00:00.000Z"
+    "lastSavedAt": "2026-03-08T18:06:25.280Z"
   }
 }
