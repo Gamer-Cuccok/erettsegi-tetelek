@@ -1,0 +1,23 @@
+{
+  "subjects": [
+    {
+      "id": "subj-magyar",
+      "name": "Magyar nyelv és irodalom",
+      "createdAt": "2026-03-08T00:00:00.000Z",
+      "updatedAt": "2026-03-08T00:00:00.000Z",
+      "pages": [
+        {
+          "id": "page-minta",
+          "title": "Minta tétel",
+          "content": "<h2>Minta jegyzet</h2><p>Ez egy induló oldal. Átírhatod, törölheted, vagy létrehozhatsz új tantárgyakat és oldalakat.</p><p><strong>Tipp:</strong> képet beilleszthetsz sima Ctrl+V-vel is, vagy a <em>Kép csatolása</em> gombbal.</p>",
+          "createdAt": "2026-03-08T00:00:00.000Z",
+          "updatedAt": "2026-03-08T00:00:00.000Z"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "version": 1,
+    "lastSavedAt": "2026-03-08T00:00:00.000Z"
+  }
+}

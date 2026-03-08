@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Érettségi Tételek</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar glass-card">
+      <div class="sidebar-top">
+        <div>
+          <p class="eyebrow">Rendszerezett jegyzetelés</p>
+          <h1>Érettségi tételek</h1>
+        </div>
+        <button id="addSubjectBtn" class="primary-btn">+ Tantárgy</button>
+      </div>
+
+      <div class="sidebar-search-wrap">
+        <input id="subjectSearch" class="search-input" type="search" placeholder="Keresés tantárgyak között..." />
+      </div>
+
+      <div id="subjectsList" class="subjects-list"></div>
+
+      <div class="sidebar-footer">
+        <div class="sync-indicator-wrap">
+          <span id="syncDot" class="sync-dot"></span>
+          <span id="syncStatus">Helyi mentés aktív</span>
+        </div>
+        <div class="footer-actions">
+          <button id="saveNowBtn" class="ghost-btn">Mentés most</button>
+          <button id="settingsBtn" class="ghost-btn">GitHub sync</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <section class="hero glass-card">
+        <div>
+          <p class="eyebrow">Gyors áttekintés</p>
+          <h2 id="heroTitle">Válassz egy tantárgyat</h2>
+          <p id="heroSubtitle" class="muted-text">Készíts oldalakat, írj jegyzeteket, szúrj be képeket, és mentsd el mindent.</p>
+        </div>
+        <div class="hero-actions">
+          <button id="addPageBtn" class="primary-btn">+ Oldal</button>
+          <button id="renameCurrentPageBtn" class="ghost-btn">Oldal átnevezése</button>
+        </div>
+      </section>
+
+      <section class="pages-strip glass-card">
+        <div class="section-head">
+          <div>
+            <h3>Oldalak</h3>
+            <p class="muted-text small">Az aktuális tantárgyhoz tartozó lapok.</p>
+          </div>
+        </div>
+        <div id="pagesList" class="pages-list"></div>
+      </section>
+
+      <section class="editor-card glass-card">
+        <div class="editor-head">
+          <div class="editor-title-wrap">
+            <input id="pageTitleInput" class="page-title-input" type="text" placeholder="Oldal címe" />
+            <p id="pageMeta" class="muted-text small">Még nincs kiválasztott oldal.</p>
+          </div>
+          <div class="editor-actions">
+            <button id="deletePageBtn" class="danger-btn">Oldal törlése</button>
+          </div>
+        </div>
+
+        <div class="toolbar-wrap">
+          <div id="editorToolbar" class="toolbar">
+            <button data-cmd="bold" type="button"><strong>B</strong></button>
+            <button data-cmd="italic" type="button"><em>I</em></button>
+            <button data-cmd="underline" type="button"><u>U</u></button>
+            <button data-block="h2" type="button">H2</button>
+            <button data-block="h3" type="button">H3</button>
+            <button data-cmd="insertUnorderedList" type="button">• Lista</button>
+            <button data-cmd="insertOrderedList" type="button">1. Lista</button>
+            <button data-align="left" type="button">Balra</button>
+            <button data-align="center" type="button">Középre</button>
+            <button data-align="right" type="button">Jobbra</button>
+            <button id="insertImageBtn" type="button">Kép csatolása</button>
+            <button id="insertDividerBtn" type="button">Elválasztó</button>
+            <button id="clearFormattingBtn" type="button">Formázás törlése</button>
+          </div>
+          <input id="imageInput" type="file" accept="image/*" hidden />
+        </div>
+
+        <div class="editor-zone">
+          <div id="imageControls" class="image-controls hidden">
+            <span class="muted-text small">Kép:</span>
+            <button data-image-width="33" type="button">33%</button>
+            <button data-image-width="50" type="button">50%</button>
+            <button data-image-width="75" type="button">75%</button>
+            <button data-image-width="100" type="button">100%</button>
+            <button data-image-align="left" type="button">Bal</button>
+            <button data-image-align="center" type="button">Közép</button>
+            <button data-image-align="right" type="button">Jobb</button>
+            <button id="removeSelectedImageBtn" type="button">Kép törlése</button>
+          </div>
+
+          <div id="editorPlaceholder" class="editor-placeholder">
+            <div>
+              <h3>Nincs kiválasztott oldal</h3>
+              <p>Hozz létre egy tantárgyat, azon belül egy oldalt, és kezdheted is a jegyzetelést.</p>
+            </div>
+          </div>
+
+          <div id="editor" class="editor" contenteditable="true" spellcheck="true"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden"></div>
+
+  <section id="itemModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card glass-card">
+      <div class="modal-head">
+        <h3 id="itemModalTitle">Új elem</h3>
+        <button class="icon-btn" data-close-modal="itemModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field">
+          <span>Név</span>
+          <input id="itemModalInput" type="text" placeholder="Adj meg egy nevet" />
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="ghost-btn" data-close-modal="itemModal">Mégse</button>
+        <button id="itemModalSubmit" class="primary-btn">Mentés</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="confirmModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card glass-card">
+      <div class="modal-head">
+        <h3 id="confirmTitle">Biztos vagy benne?</h3>
+        <button class="icon-btn" data-close-modal="confirmModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage" class="confirm-message">Ezt a műveletet nem lehet visszavonni.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="ghost-btn" data-close-modal="confirmModal">Mégse</button>
+        <button id="confirmSubmit" class="danger-btn">Törlés</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="settingsModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card glass-card large-modal">
+      <div class="modal-head">
+        <h3>GitHub sync beállítások</h3>
+        <button class="icon-btn" data-close-modal="settingsModal">✕</button>
+      </div>
+      <div class="modal-body settings-grid">
+        <label class="field">
+          <span>GitHub felhasználónév / org</span>
+          <input id="cfgOwner" type="text" placeholder="pl. teso123" />
+        </label>
+        <label class="field">
+          <span>Repository neve</span>
+          <input id="cfgRepo" type="text" placeholder="pl. erettsegi-jegyzetek" />
+        </label>
+        <label class="field">
+          <span>Branch</span>
+          <input id="cfgBranch" type="text" placeholder="main" />
+        </label>
+        <label class="field full-row">
+          <span>Personal Access Token</span>
+          <input id="cfgToken" type="password" placeholder="GitHub token (csak böngészőben tárolódik)" />
+        </label>
+        <label class="checkbox-row full-row">
+          <input id="cfgAutoSync" type="checkbox" />
+          <span>Automatikus GitHub mentés minden módosítás után</span>
+        </label>
+        <div class="info-box full-row">
+          <p><strong>Mit csinál a sync?</strong> A jelenlegi állapotot elmenti a <code>data/content.json</code> fájlba, és minden mentéskor létrehoz egy időbélyeges backup fájlt a <code>backup</code> mappában. A backupok az oldalról nem törölhetők.</p>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="testSyncBtn" class="ghost-btn">Kapcsolat tesztelése</button>
+        <button id="saveSettingsBtn" class="primary-btn">Beállítások mentése</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>
