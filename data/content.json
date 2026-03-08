@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updatedAt": "2026-03-08T20:24:53.427Z",
+  "updatedAt": "2026-03-08T20:56:13.646Z",
   "subjects": [
     {
       "id": "subject_cee208e4-9dc1-417c-b186-60957ef68d42",
@@ -16,6 +16,13 @@
           "updatedAt": "2026-03-08T20:24:27.314Z"
         }
       ]
+    },
+    {
+      "id": "subject_f22af2ab-a88f-42db-8480-e5faff548481",
+      "title": "Fasz",
+      "createdAt": "2026-03-08T20:56:13.636Z",
+      "updatedAt": "2026-03-08T20:56:13.636Z",
+      "pages": []
     }
   ],
   "deletedSubjects": [],
