@@ -5,11 +5,11 @@ const CONFIG_KEY = 'erettsegi_config_current_v2';
 const LOCAL_FALLBACK_SCOPE = 'local-only';
 const AUTOSAVE_DELAY_MS = 0;
 const AUTOSAVE_TEXT_THRESHOLD = 1;
-const REMOTE_POLL_MS = 1500;
+const REMOTE_POLL_MS = 1000;
 const BACKUP_COOLDOWN_MS = 180000;
-const SAVE_RETRY_ATTEMPTS = 10;
-const SAVE_RETRY_BASE_MS = 450;
-const SAVE_POST_SUCCESS_POLL_DELAY_MS = 900;
+const SAVE_RETRY_ATTEMPTS = 1;
+const SAVE_RETRY_BASE_MS = 250;
+const SAVE_POST_SUCCESS_POLL_DELAY_MS = 300;
 
 const els = {
   subjectList: document.getElementById('subjectList'),
@@ -50,6 +50,8 @@ const stateRef = {
   pendingSaveOptions: { forceBackup: false, reason: 'Mentés' },
   pendingTextChangeCount: 0,
   hasUnsavedLocalChanges: false,
+  localVersion: 0,
+  syncedVersion: 0,
   lastKnownRemoteVersion: null,
   lastCommittedFingerprint: null,
   lastSuccessfulSaveAt: 0,
@@ -333,6 +335,8 @@ function getSelectedPage() {
 
 function markStateUpdated() {
   stateRef.state.updatedAt = nowIso();
+  stateRef.hasUnsavedLocalChanges = true;
+  stateRef.localVersion += 1;
 }
 
 function ensureSelectionValid() {
@@ -662,6 +666,7 @@ function requestGithubSync(options = {}) {
 
   const delay = options.immediate ? 0 : (options.delay ?? AUTOSAVE_DELAY_MS);
   stateRef.autosaveTimer = window.setTimeout(() => {
+    stateRef.autosaveTimer = null;
     flushPendingGithubSave();
   }, delay);
 }
@@ -901,82 +906,62 @@ async function performGithubSave(options = {}) {
   saveLocalDraft();
   setStatus('GitHub mentés folyamatban...');
 
-  let attempt = 0;
-  let lastError = null;
+  const remoteFile = await githubGetFile(GITHUB_DATA_PATH, config);
+  const remoteState = remoteFile.exists
+    ? normalizeState(safeJsonParse(remoteFile.content, createEmptyState()))
+    : createEmptyState();
 
-  while (attempt < SAVE_RETRY_ATTEMPTS) {
-    attempt += 1;
-    try {
-      const remoteFile = await githubGetFile(GITHUB_DATA_PATH, config);
-      const remoteState = remoteFile.exists
-        ? normalizeState(safeJsonParse(remoteFile.content, createEmptyState()))
-        : createEmptyState();
+  const mergedState = mergeStates(remoteState, stateRef.state);
+  const mergedFingerprint = stateFingerprint(mergedState);
+  const remoteFingerprint = stateFingerprint(remoteState);
 
-      const mergedState = mergeStates(remoteState, stateRef.state);
-      const mergedFingerprint = stateFingerprint(mergedState);
-      const remoteFingerprint = stateFingerprint(remoteState);
-
-      if (remoteFile.exists && mergedFingerprint === remoteFingerprint && !shouldCreateBackup(options.forceBackup)) {
-        stateRef.state = mergedState;
-        stateRef.lastKnownRemoteVersion = remoteFile.sha || mergedFingerprint;
-        stateRef.lastCommittedFingerprint = mergedFingerprint;
-        stateRef.lastSuccessfulSaveAt = Date.now();
-        stateRef.hasUnsavedLocalChanges = false;
-        saveLocalDraft();
-        setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
-        setStatus('GitHub adat már szinkronban van.', 'success');
-        render();
-        return true;
-      }
-
-      mergedState.updatedAt = nowIso();
-      const contentText = JSON.stringify(mergedState, null, 2);
-
-      const saveResult = await githubPutFile(
-        GITHUB_DATA_PATH,
-        contentText,
-        config,
-        remoteFile.sha,
-        `${options.reason || 'Mentés'}: ${new Date().toLocaleString('hu-HU')}`,
-      );
-
-      if (shouldCreateBackup(options.forceBackup)) {
-        await createBackupSnapshot(config, mergedState);
-      }
-
-      stateRef.state = mergedState;
-      stateRef.lastKnownRemoteVersion = saveResult?.content?.sha || stateFingerprint(mergedState);
-      stateRef.lastCommittedFingerprint = stateFingerprint(mergedState);
-      stateRef.lastSuccessfulSaveAt = Date.now();
-      stateRef.hasUnsavedLocalChanges = false;
-      saveLocalDraft();
-      setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
-      setStatus('GitHub mentés kész. A közös adat frissült.', 'success');
-      render();
-      window.setTimeout(() => {
-        pollRemoteUpdates();
-      }, SAVE_POST_SUCCESS_POLL_DELAY_MS);
-      return true;
-    } catch (error) {
-      lastError = error;
-      if (isRetriableGithubError(error) && attempt < SAVE_RETRY_ATTEMPTS) {
-        setStatus(`GitHub szinkron folyamatban, újrapróbálom (${attempt}/${SAVE_RETRY_ATTEMPTS})...`, 'warning');
-        await sleep(SAVE_RETRY_BASE_MS * attempt);
-        continue;
-      }
-      throw error;
-    }
+  if (remoteFile.exists && mergedFingerprint === remoteFingerprint && !shouldCreateBackup(options.forceBackup)) {
+    stateRef.state = mergedState;
+    stateRef.lastKnownRemoteVersion = remoteFile.sha || mergedFingerprint;
+    stateRef.lastCommittedFingerprint = mergedFingerprint;
+    stateRef.lastSuccessfulSaveAt = Date.now();
+    stateRef.hasUnsavedLocalChanges = false;
+    stateRef.syncedVersion = stateRef.localVersion;
+    saveLocalDraft();
+    setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
+    setStatus('GitHub adat már szinkronban van.', 'success');
+    render();
+    return true;
   }
 
-  throw lastError || new Error('GitHub mentés sikertelen.');
+  mergedState.updatedAt = nowIso();
+  const contentText = JSON.stringify(mergedState, null, 2);
+
+  const saveResult = await githubPutFile(
+    GITHUB_DATA_PATH,
+    contentText,
+    config,
+    remoteFile.sha,
+    `${options.reason || 'Mentés'}: ${new Date().toLocaleString('hu-HU')}`,
+  );
+
+  if (shouldCreateBackup(options.forceBackup)) {
+    await createBackupSnapshot(config, mergedState);
+  }
+
+  stateRef.state = mergedState;
+  stateRef.lastKnownRemoteVersion = saveResult?.content?.sha || stateFingerprint(mergedState);
+  stateRef.lastCommittedFingerprint = stateFingerprint(mergedState);
+  stateRef.lastSuccessfulSaveAt = Date.now();
+  stateRef.hasUnsavedLocalChanges = false;
+  stateRef.syncedVersion = stateRef.localVersion;
+  saveLocalDraft();
+  setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
+  setStatus('GitHub mentés kész. A közös adat frissült.', 'success');
+  render();
+  window.setTimeout(() => {
+    pollRemoteUpdates();
+  }, SAVE_POST_SUCCESS_POLL_DELAY_MS);
+  return true;
 }
 
 async function flushPendingGithubSave() {
-  if (!stateRef.saveRequested) return;
-
-  if (stateRef.saveInFlight) {
-    return;
-  }
+  if (stateRef.saveInFlight) return;
 
   const config = getConfig();
   if (!currentConfigIsComplete(config) || !config.token) {
@@ -986,31 +971,45 @@ async function flushPendingGithubSave() {
     return;
   }
 
-  let scheduledFollowUp = false;
   stateRef.saveInFlight = true;
-  stateRef.saveRequested = false;
-  const saveOptions = { ...stateRef.pendingSaveOptions };
-  stateRef.pendingSaveOptions = { forceBackup: false, reason: 'Mentés' };
 
   try {
-    await performGithubSave(saveOptions);
-  } catch (error) {
-    if (isRetriableGithubError(error)) {
-      stateRef.saveRequested = true;
-      scheduledFollowUp = true;
-      setStatus('GitHub még szinkronizál, automatikusan folytatom a mentést...', 'warning');
-      window.clearTimeout(stateRef.autosaveTimer);
-      stateRef.autosaveTimer = window.setTimeout(() => {
-        flushPendingGithubSave();
-      }, SAVE_RETRY_BASE_MS * 2);
-    } else {
-      setStatus(formatGithubError(error), 'error');
+    while (stateRef.saveRequested || stateRef.hasUnsavedLocalChanges || stateRef.syncedVersion !== stateRef.localVersion) {
+      stateRef.saveRequested = false;
+      const saveOptions = { ...stateRef.pendingSaveOptions };
+      stateRef.pendingSaveOptions = { forceBackup: false, reason: 'Mentés' };
+
+      let attempt = 0;
+      while (true) {
+        try {
+          await performGithubSave(saveOptions);
+          break;
+        } catch (error) {
+          if (isRetriableGithubError(error)) {
+            attempt += 1;
+            stateRef.saveRequested = true;
+            const now = Date.now();
+            if ((now - stateRef.lastStatusAt) > 1800) {
+              setStatus('GitHub szinkron folyamatban... újrapróbálom automatikusan.', 'warning');
+              stateRef.lastStatusAt = now;
+            }
+            await sleep(Math.min(SAVE_RETRY_BASE_MS * Math.max(1, attempt), 2000));
+            syncEditorIntoState();
+            saveLocalDraft();
+            continue;
+          }
+          setStatus(formatGithubError(error), 'error');
+          stateRef.saveRequested = false;
+          return;
+        }
+      }
     }
   } finally {
     stateRef.saveInFlight = false;
-    if (stateRef.saveRequested && !scheduledFollowUp) {
+    if (stateRef.saveRequested || stateRef.hasUnsavedLocalChanges || stateRef.syncedVersion !== stateRef.localVersion) {
       window.clearTimeout(stateRef.autosaveTimer);
       stateRef.autosaveTimer = window.setTimeout(() => {
+        stateRef.autosaveTimer = null;
         flushPendingGithubSave();
       }, 0);
     }
@@ -1042,6 +1041,7 @@ async function reloadFromRemote() {
     stateRef.state = mergeStates(remoteSnapshot.state, stateRef.state);
     stateRef.lastKnownRemoteVersion = remoteSnapshot.version;
     stateRef.lastCommittedFingerprint = stateFingerprint(stateRef.state);
+    stateRef.syncedVersion = stateRef.localVersion;
     saveLocalDraft();
     render();
     setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
@@ -1069,12 +1069,12 @@ function stopRemotePolling() {
 
 async function pollRemoteUpdates() {
   const config = getConfig();
-  if (!currentConfigIsComplete(config) || stateRef.saveInFlight) return;
+  if (!currentConfigIsComplete(config) || stateRef.saveInFlight || stateRef.saveRequested || stateRef.hasUnsavedLocalChanges) return;
 
   if ((Date.now() - stateRef.lastSuccessfulSaveAt) < SAVE_POST_SUCCESS_POLL_DELAY_MS) return;
 
   const isEditing = document.activeElement === els.editor || document.activeElement === els.pageTitleInput;
-  if (isEditing && stateRef.hasUnsavedLocalChanges) return;
+  if (isEditing) return;
 
   try {
     const remoteSnapshot = await loadRemoteSnapshot(config);
@@ -1087,6 +1087,7 @@ async function pollRemoteUpdates() {
     stateRef.state = mergedState;
     stateRef.lastKnownRemoteVersion = remoteSnapshot.version;
     stateRef.lastCommittedFingerprint = stateFingerprint(stateRef.state);
+    stateRef.syncedVersion = stateRef.localVersion;
     saveLocalDraft();
 
     if (changed) {
