@@ -3,10 +3,13 @@ const STATIC_DATA_PATH = 'data/content.json';
 const GITHUB_DATA_PATH = 'data/content.json';
 const CONFIG_KEY = 'erettsegi_config_current_v2';
 const LOCAL_FALLBACK_SCOPE = 'local-only';
-const AUTOSAVE_DELAY_MS = 1200;
-const AUTOSAVE_TEXT_THRESHOLD = 5;
-const REMOTE_POLL_MS = 4000;
+const AUTOSAVE_DELAY_MS = 0;
+const AUTOSAVE_TEXT_THRESHOLD = 1;
+const REMOTE_POLL_MS = 1500;
 const BACKUP_COOLDOWN_MS = 180000;
+const SAVE_RETRY_ATTEMPTS = 10;
+const SAVE_RETRY_BASE_MS = 450;
+const SAVE_POST_SUCCESS_POLL_DELAY_MS = 900;
 
 const els = {
   subjectList: document.getElementById('subjectList'),
@@ -48,6 +51,8 @@ const stateRef = {
   pendingTextChangeCount: 0,
   hasUnsavedLocalChanges: false,
   lastKnownRemoteVersion: null,
+  lastCommittedFingerprint: null,
+  lastSuccessfulSaveAt: 0,
   lastBackupAt: 0,
   lastStatusAt: 0,
 };
@@ -661,6 +666,16 @@ function requestGithubSync(options = {}) {
   }, delay);
 }
 
+function sleep(ms) {
+  return new Promise(resolve => window.setTimeout(resolve, ms));
+}
+
+function isRetriableGithubError(error) {
+  if (!error) return true;
+  const status = Number(error.status || 0);
+  return !status || status === 409 || status === 423 || status === 425 || status === 429 || status >= 500;
+}
+
 function estimateInputWeight(event) {
   if (event?.inputType === 'insertFromPaste') {
     return Math.max(AUTOSAVE_TEXT_THRESHOLD, event.data?.length || 0, 1);
@@ -682,12 +697,10 @@ function queueRealtimeAutosave(event) {
 
   if (shouldPushNow) {
     stateRef.pendingTextChangeCount = 0;
-    requestGithubSync({ immediate: true, reason: 'Automatikus GitHub mentés' });
-    return;
   }
 
   requestGithubSync({
-    immediate: false,
+    immediate: true,
     delay: AUTOSAVE_DELAY_MS,
     reason: 'Automatikus GitHub mentés',
   });
@@ -889,7 +902,9 @@ async function performGithubSave(options = {}) {
   setStatus('GitHub mentés folyamatban...');
 
   let attempt = 0;
-  while (attempt < 4) {
+  let lastError = null;
+
+  while (attempt < SAVE_RETRY_ATTEMPTS) {
     attempt += 1;
     try {
       const remoteFile = await githubGetFile(GITHUB_DATA_PATH, config);
@@ -898,6 +913,22 @@ async function performGithubSave(options = {}) {
         : createEmptyState();
 
       const mergedState = mergeStates(remoteState, stateRef.state);
+      const mergedFingerprint = stateFingerprint(mergedState);
+      const remoteFingerprint = stateFingerprint(remoteState);
+
+      if (remoteFile.exists && mergedFingerprint === remoteFingerprint && !shouldCreateBackup(options.forceBackup)) {
+        stateRef.state = mergedState;
+        stateRef.lastKnownRemoteVersion = remoteFile.sha || mergedFingerprint;
+        stateRef.lastCommittedFingerprint = mergedFingerprint;
+        stateRef.lastSuccessfulSaveAt = Date.now();
+        stateRef.hasUnsavedLocalChanges = false;
+        saveLocalDraft();
+        setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
+        setStatus('GitHub adat már szinkronban van.', 'success');
+        render();
+        return true;
+      }
+
       mergedState.updatedAt = nowIso();
       const contentText = JSON.stringify(mergedState, null, 2);
 
@@ -915,22 +946,29 @@ async function performGithubSave(options = {}) {
 
       stateRef.state = mergedState;
       stateRef.lastKnownRemoteVersion = saveResult?.content?.sha || stateFingerprint(mergedState);
+      stateRef.lastCommittedFingerprint = stateFingerprint(mergedState);
+      stateRef.lastSuccessfulSaveAt = Date.now();
       stateRef.hasUnsavedLocalChanges = false;
       saveLocalDraft();
       setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
       setStatus('GitHub mentés kész. A közös adat frissült.', 'success');
       render();
+      window.setTimeout(() => {
+        pollRemoteUpdates();
+      }, SAVE_POST_SUCCESS_POLL_DELAY_MS);
       return true;
     } catch (error) {
-      if (error.status === 409 && attempt < 4) {
-        setStatus('Mentési ütközés volt, friss állapottal újrapróbálom...', 'warning');
+      lastError = error;
+      if (isRetriableGithubError(error) && attempt < SAVE_RETRY_ATTEMPTS) {
+        setStatus(`GitHub szinkron folyamatban, újrapróbálom (${attempt}/${SAVE_RETRY_ATTEMPTS})...`, 'warning');
+        await sleep(SAVE_RETRY_BASE_MS * attempt);
         continue;
       }
       throw error;
     }
   }
 
-  return false;
+  throw lastError || new Error('GitHub mentés sikertelen.');
 }
 
 async function flushPendingGithubSave() {
@@ -948,6 +986,7 @@ async function flushPendingGithubSave() {
     return;
   }
 
+  let scheduledFollowUp = false;
   stateRef.saveInFlight = true;
   stateRef.saveRequested = false;
   const saveOptions = { ...stateRef.pendingSaveOptions };
@@ -956,10 +995,20 @@ async function flushPendingGithubSave() {
   try {
     await performGithubSave(saveOptions);
   } catch (error) {
-    setStatus(formatGithubError(error), 'error');
+    if (isRetriableGithubError(error)) {
+      stateRef.saveRequested = true;
+      scheduledFollowUp = true;
+      setStatus('GitHub még szinkronizál, automatikusan folytatom a mentést...', 'warning');
+      window.clearTimeout(stateRef.autosaveTimer);
+      stateRef.autosaveTimer = window.setTimeout(() => {
+        flushPendingGithubSave();
+      }, SAVE_RETRY_BASE_MS * 2);
+    } else {
+      setStatus(formatGithubError(error), 'error');
+    }
   } finally {
     stateRef.saveInFlight = false;
-    if (stateRef.saveRequested) {
+    if (stateRef.saveRequested && !scheduledFollowUp) {
       window.clearTimeout(stateRef.autosaveTimer);
       stateRef.autosaveTimer = window.setTimeout(() => {
         flushPendingGithubSave();
@@ -992,6 +1041,7 @@ async function reloadFromRemote() {
     const remoteSnapshot = await loadRemoteSnapshot(config);
     stateRef.state = mergeStates(remoteSnapshot.state, stateRef.state);
     stateRef.lastKnownRemoteVersion = remoteSnapshot.version;
+    stateRef.lastCommittedFingerprint = stateFingerprint(stateRef.state);
     saveLocalDraft();
     render();
     setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
@@ -1021,6 +1071,8 @@ async function pollRemoteUpdates() {
   const config = getConfig();
   if (!currentConfigIsComplete(config) || stateRef.saveInFlight) return;
 
+  if ((Date.now() - stateRef.lastSuccessfulSaveAt) < SAVE_POST_SUCCESS_POLL_DELAY_MS) return;
+
   const isEditing = document.activeElement === els.editor || document.activeElement === els.pageTitleInput;
   if (isEditing && stateRef.hasUnsavedLocalChanges) return;
 
@@ -1034,6 +1086,7 @@ async function pollRemoteUpdates() {
     const changed = stateFingerprint(mergedState) !== stateFingerprint(stateRef.state);
     stateRef.state = mergedState;
     stateRef.lastKnownRemoteVersion = remoteSnapshot.version;
+    stateRef.lastCommittedFingerprint = stateFingerprint(stateRef.state);
     saveLocalDraft();
 
     if (changed) {
@@ -1072,6 +1125,7 @@ async function bootstrap() {
       const localDraft = normalizeState(loadLocalDraft(config));
       stateRef.state = mergeStates(remoteSnapshot.state, localDraft);
       stateRef.lastKnownRemoteVersion = remoteSnapshot.version;
+      stateRef.lastCommittedFingerprint = stateFingerprint(stateRef.state);
       setSource(`GitHub: ${config.owner}/${config.repo}@${config.branch}`);
       setStatus('GitHub adat betöltve.', 'success');
       loaded = true;
@@ -1085,6 +1139,7 @@ async function bootstrap() {
     const localDraft = loadLocalDraft(config);
     if (localDraft) {
       stateRef.state = normalizeState(localDraft);
+      stateRef.lastCommittedFingerprint = stateFingerprint(stateRef.state);
       setSource('Helyi draft');
       setStatus('Helyi mentés betöltve.', 'success');
       loaded = true;
@@ -1093,6 +1148,7 @@ async function bootstrap() {
 
   if (!loaded) {
     stateRef.state = await loadStaticState();
+    stateRef.lastCommittedFingerprint = stateFingerprint(stateRef.state);
     setSource('Statikus fájl');
     setStatus('Kezdőadat betöltve.', 'success');
   }
