@@ -1,1 +1,0 @@
-# erettsegi-tetelek
