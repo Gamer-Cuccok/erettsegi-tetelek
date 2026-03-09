@@ -102,6 +102,43 @@ function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
+function parseGithubRepositoryInput(...values) {
+  for (const rawValue of values) {
+    const raw = String(rawValue || '').trim();
+    if (!raw) continue;
+
+    const cleaned = raw.replace(/\.git$/i, '').trim();
+
+    const urlMatch = cleaned.match(/github\.com[/:]([^/\s]+)\/([^/\s?#]+)(?:[/?#].*)?$/i);
+    if (urlMatch) {
+      return { owner: urlMatch[1].trim(), repo: urlMatch[2].trim() };
+    }
+
+    const pairMatch = cleaned.match(/^([^/\s]+)\/([^/\s]+)$/);
+    if (pairMatch) {
+      return { owner: pairMatch[1].trim(), repo: pairMatch[2].trim() };
+    }
+  }
+  return null;
+}
+
+function normalizeGithubConfig(config = {}) {
+  const parsed = parseGithubRepositoryInput(config.githubRepo, config.githubOwner);
+  const owner = (parsed?.owner || config.githubOwner || '').trim().replace(/^@/, '');
+  const repo = (parsed?.repo || config.githubRepo || '').trim().replace(/\.git$/i, '').replace(/^\/+|\/+$/g, '');
+  return {
+    ...config,
+    githubOwner: owner,
+    githubRepo: repo,
+    githubBranch: (config.githubBranch || DEFAULT_GITHUB_BRANCH).trim() || DEFAULT_GITHUB_BRANCH,
+    githubToken: (config.githubToken || '').trim(),
+  };
+}
+
+function buildGithubContentsPath(path) {
+  return String(path || '').split('/').filter(Boolean).map(part => encodeURIComponent(part)).join('/');
+}
+
 function hashString(text) {
   let hash = 0;
   const normalized = String(text ?? '');
@@ -264,7 +301,7 @@ function setSource(message) {
 
 function getConfig() {
   const raw = safeJsonParse(localStorage.getItem(CONFIG_KEY), {}) || {};
-  return {
+  return normalizeGithubConfig({
     supabaseUrl: raw.supabaseUrl || '',
     supabaseAnonKey: raw.supabaseAnonKey || '',
     imageBucket: raw.imageBucket || DEFAULT_IMAGE_BUCKET,
@@ -275,11 +312,11 @@ function getConfig() {
     githubToken: raw.githubToken || '',
     autoGithubSync: raw.autoGithubSync !== false,
     preferRemote: raw.preferRemote !== false,
-  };
+  });
 }
 
 function saveConfig(config) {
-  const next = {
+  const next = normalizeGithubConfig({
     supabaseUrl: (config.supabaseUrl || '').trim(),
     supabaseAnonKey: (config.supabaseAnonKey || '').trim(),
     imageBucket: (config.imageBucket || DEFAULT_IMAGE_BUCKET).trim() || DEFAULT_IMAGE_BUCKET,
@@ -290,7 +327,7 @@ function saveConfig(config) {
     githubToken: (config.githubToken || '').trim(),
     autoGithubSync: Boolean(config.autoGithubSync),
     preferRemote: Boolean(config.preferRemote),
-  };
+  });
   localStorage.setItem(CONFIG_KEY, JSON.stringify(next));
   return next;
 }
@@ -344,7 +381,8 @@ function hasEdgeFunctionConfig(config = getConfig()) {
 }
 
 function hasDirectGithubConfig(config = getConfig()) {
-  return Boolean(config.githubOwner && config.githubRepo && config.githubToken);
+  const normalized = normalizeGithubConfig(config);
+  return Boolean(normalized.githubOwner && normalized.githubRepo && normalized.githubToken);
 }
 
 function hasAnyGithubSyncConfig(config = getConfig()) {
@@ -1037,7 +1075,10 @@ async function flushGithubSync() {
       let directErrorMessage = '';
       let edgeErrorMessage = '';
 
-      if (hasDirectGithubConfig(config)) {
+      const hasDirect = hasDirectGithubConfig(config);
+      const hasEdge = hasEdgeFunctionConfig(config);
+
+      if (hasDirect) {
         try {
           const result = await directGithubSync(options, config);
           handled = true;
@@ -1052,7 +1093,7 @@ async function flushGithubSync() {
         }
       }
 
-      if (!handled && hasEdgeFunctionConfig(config) && supabase) {
+      if (!handled && !hasDirect && hasEdge && supabase) {
         const { data, error } = await supabase.functions.invoke(config.syncFunction, {
           body: {
             reason: options.reason || 'Mentés',
@@ -1155,7 +1196,10 @@ async function testSupabaseConnection() {
       let edgeOk = false;
       let edgeMessage = '';
 
-      if (hasDirectGithubConfig(config)) {
+      const hasDirect = hasDirectGithubConfig(config);
+      const hasEdge = hasEdgeFunctionConfig(config);
+
+      if (hasDirect) {
         try {
           await testDirectGithubConnection(config);
           directOk = true;
@@ -1164,7 +1208,7 @@ async function testSupabaseConnection() {
         }
       }
 
-      if (!directOk && hasEdgeFunctionConfig(config)) {
+      if (!hasDirect && hasEdge) {
         const probe = await supabase.functions.invoke(config.syncFunction, { body: { dryRun: true } });
         if (probe.error) {
           edgeMessage = probe.error.message || 'ismeretlen';
@@ -1239,7 +1283,7 @@ function applyIncomingRemoteRow(row, source = 'Realtime') {
   saveLocalDraft();
   const nextFingerprint = stateFingerprint(stateRef.state);
 
-  if (nextFingerprint !== previousFingerprint && !(mergeNeeded && document.activeElement === els.editor)) {
+  if (nextFingerprint !== previousFingerprint) {
     render();
   }
 
@@ -1287,9 +1331,13 @@ function subscribeRealtime() {
         applyIncomingRemoteRow(nextRow, 'Realtime');
       }
     )
-    .subscribe((status) => {
+    .subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         setSource('Supabase élő adat');
+        try {
+          const row = await fetchRemoteRow();
+          if (row) applyIncomingRemoteRow(row, 'Realtime csatlakozás');
+        } catch {}
       } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
         startRemotePolling();
         setStatus('Realtime kapcsolat ingadozik, polling fallback aktív.', 'warning');
@@ -1487,24 +1535,92 @@ function removeSelectedImage() {
 }
 
 
-async function testDirectGithubConnection(config = getConfig()) {
-  if (!hasDirectGithubConfig(config)) {
+async function fetchGithubRepoInfo({ owner, repo, token }) {
+  const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, {
+    headers: {
+      'Accept': 'application/vnd.github+json',
+      'Authorization': `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+
+  const rawText = await response.text();
+  const data = safeJsonParse(rawText, rawText);
+  if (!response.ok) {
+    throw new Error(`GitHub repo hiba ${response.status}: ${typeof data === 'object' ? data?.message || 'ismeretlen' : rawText}`);
+  }
+  return data;
+}
+
+async function ensureGithubBranchAccessible({ owner, repo, branch, token }) {
+  const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/branches/${encodeURIComponent(branch)}`, {
+    headers: {
+      'Accept': 'application/vnd.github+json',
+      'Authorization': `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+
+  const rawText = await response.text();
+  const data = safeJsonParse(rawText, rawText);
+  if (!response.ok) {
+    throw new Error(`GitHub branch hiba ${response.status}: ${typeof data === 'object' ? data?.message || 'ismeretlen' : rawText}`);
+  }
+  return data;
+}
+
+async function resolveGithubTarget(config = getConfig()) {
+  const normalized = normalizeGithubConfig(config);
+  if (!hasDirectGithubConfig(normalized)) {
     throw new Error('Hiányzik a GitHub owner / repo / token a közvetlen mentéshez.');
   }
-  await githubGetFileBrowser({
-    owner: config.githubOwner,
-    repo: config.githubRepo,
-    branch: config.githubBranch || DEFAULT_GITHUB_BRANCH,
-    token: config.githubToken,
-    path: GITHUB_CONTENT_PATH,
+
+  const repoInfo = await fetchGithubRepoInfo({
+    owner: normalized.githubOwner,
+    repo: normalized.githubRepo,
+    token: normalized.githubToken,
   });
+
+  const branchCandidates = [normalized.githubBranch, repoInfo.default_branch, DEFAULT_GITHUB_BRANCH]
+    .map(item => String(item || '').trim())
+    .filter(Boolean)
+    .filter((item, index, array) => array.indexOf(item) === index);
+
+  let branch = branchCandidates[0];
+  let lastBranchError = null;
+  for (const candidate of branchCandidates) {
+    try {
+      await ensureGithubBranchAccessible({
+        owner: normalized.githubOwner,
+        repo: normalized.githubRepo,
+        branch: candidate,
+        token: normalized.githubToken,
+      });
+      branch = candidate;
+      lastBranchError = null;
+      break;
+    } catch (error) {
+      lastBranchError = error;
+    }
+  }
+
+  if (lastBranchError) throw lastBranchError;
+
+  return {
+    owner: normalized.githubOwner,
+    repo: normalized.githubRepo,
+    branch,
+    token: normalized.githubToken,
+  };
+}
+
+async function testDirectGithubConnection(config = getConfig()) {
+  await resolveGithubTarget(config);
   return true;
 }
 
 async function directGithubSync(options = {}, config = getConfig()) {
-  if (!hasDirectGithubConfig(config)) {
-    throw new Error('Hiányzik a közvetlen GitHub mentés beállítása.');
-  }
+  const target = await resolveGithubTarget(config);
 
   const snapshot = normalizeState(deepClone(stateRef.state));
   const contentText = JSON.stringify(snapshot, null, 2);
@@ -1516,10 +1632,10 @@ async function directGithubSync(options = {}, config = getConfig()) {
 
   const timestampLabel = new Date().toLocaleString('hu-HU');
   await putGithubFileBrowser({
-    owner: config.githubOwner,
-    repo: config.githubRepo,
-    branch: config.githubBranch || DEFAULT_GITHUB_BRANCH,
-    token: config.githubToken,
+    owner: target.owner,
+    repo: target.repo,
+    branch: target.branch,
+    token: target.token,
     path: GITHUB_CONTENT_PATH,
     contentText,
     message: `${options.reason || 'Közvetlen GitHub sync'} · ${timestampLabel}`,
@@ -1536,10 +1652,10 @@ async function directGithubSync(options = {}, config = getConfig()) {
     }, null, 2);
 
     await putGithubFileBrowser({
-      owner: config.githubOwner,
-      repo: config.githubRepo,
-      branch: config.githubBranch || DEFAULT_GITHUB_BRANCH,
-      token: config.githubToken,
+      owner: target.owner,
+      repo: target.repo,
+      branch: target.branch,
+      token: target.token,
       path: `backup/content-${backupTimestamp.replace(/[:.]/g, '-')}.json`,
       contentText: backupText,
       message: `Backup · ${timestampLabel}`,
@@ -1556,10 +1672,10 @@ async function putGithubFileBrowser({ owner, repo, branch, token, path, contentT
   let latestSha = null;
 
   for (let attempt = 0; attempt < 6; attempt += 1) {
-    const currentFile = await githubGetFileBrowser({ owner, repo, branch, token, path });
+    const currentFile = await githubGetFileBrowser({ owner, repo, branch, token, path, allowMissingFile: true });
     latestSha = currentFile.sha;
 
-    const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${path}`, {
+    const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${buildGithubContentsPath(path)}`, {
       method: 'PUT',
       headers: {
         'Accept': 'application/vnd.github+json',
@@ -1590,8 +1706,8 @@ async function putGithubFileBrowser({ owner, repo, branch, token, path, contentT
   throw new Error('A GitHub mentés 409 konfliktus miatt többször sem ment át.');
 }
 
-async function githubGetFileBrowser({ owner, repo, branch, token, path }) {
-  const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${path}?ref=${encodeURIComponent(branch)}`, {
+async function githubGetFileBrowser({ owner, repo, branch, token, path, allowMissingFile = false }) {
+  const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${buildGithubContentsPath(path)}?ref=${encodeURIComponent(branch)}`, {
     headers: {
       'Accept': 'application/vnd.github+json',
       'Authorization': `Bearer ${token}`,
@@ -1599,12 +1715,13 @@ async function githubGetFileBrowser({ owner, repo, branch, token, path }) {
     },
   });
 
-  if (response.status === 404) {
+  const rawText = await response.text();
+  const data = safeJsonParse(rawText, rawText);
+
+  if (response.status === 404 && allowMissingFile) {
     return { sha: null };
   }
 
-  const rawText = await response.text();
-  const data = safeJsonParse(rawText, rawText);
   if (!response.ok) {
     throw new Error(`GitHub olvasási hiba ${response.status}: ${typeof data === 'object' ? data?.message || 'ismeretlen' : rawText}`);
   }
@@ -1656,6 +1773,22 @@ function bindEvents() {
     } else {
       hideImageTools();
     }
+  });
+
+  window.addEventListener('focus', async () => {
+    if (!currentConfigIsComplete() || stateRef.saveInFlight) return;
+    try {
+      const row = await fetchRemoteRow();
+      if (row) applyIncomingRemoteRow(row, 'Ablak fókusz');
+    } catch {}
+  });
+
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState !== 'visible' || !currentConfigIsComplete() || stateRef.saveInFlight) return;
+    try {
+      const row = await fetchRemoteRow();
+      if (row) applyIncomingRemoteRow(row, 'Láthatóság');
+    } catch {}
   });
 
   els.editor.addEventListener('paste', (event) => {
