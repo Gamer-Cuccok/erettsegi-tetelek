@@ -61,6 +61,7 @@ const stateRef = {
   pendingGithubOptions: { reason: 'GitHub sync', immediate: false, forceBackup: false },
   lastStatusAt: 0,
   lastRemoteEditorId: null,
+  githubSyncAvailable: true,
 };
 
 function createEmptyState() {
@@ -473,6 +474,34 @@ function iconButton(label) {
   return button;
 }
 
+function buildStarterState() {
+  const timestamp = nowIso();
+  return normalizeState({
+    version: APP_VERSION,
+    updatedAt: timestamp,
+    subjects: [{
+      id: uid('subject'),
+      title: 'Első tantárgy',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      pages: [{
+        id: uid('page'),
+        title: 'Első oldal',
+        content: '<p>Kezdhetsz írni ide.</p>',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      }],
+    }],
+    deletedSubjects: [],
+    deletedPages: [],
+  });
+}
+
+function isStateEffectivelyEmpty(state) {
+  const normalized = normalizeState(state);
+  return normalized.subjects.length === 0;
+}
+
 function formatDate(iso) {
   if (!iso) return 'ismeretlen';
   const date = new Date(iso);
@@ -712,6 +741,19 @@ function resetSupabaseClient() {
   stateRef.remoteRevision = 0;
 }
 
+function disableGithubSyncTemporarily(message) {
+  stateRef.githubSyncAvailable = false;
+  window.clearTimeout(stateRef.githubSyncTimer);
+  stateRef.githubSyncRequested = false;
+  stateRef.pendingGithubOptions = { reason: 'GitHub sync', immediate: false, forceBackup: false };
+  setSource('Supabase élő adat');
+  setStatus(message || 'Supabase mentve. A GitHub háttérmentés most nem elérhető, de a szerkesztés megy tovább.', 'warning');
+}
+
+function enableGithubSyncAgain() {
+  stateRef.githubSyncAvailable = true;
+}
+
 async function fetchRemoteRow() {
   const supabase = getSupabase();
   if (!supabase) return null;
@@ -924,7 +966,7 @@ async function flushPendingRemoteSave() {
 
 function requestGithubSync(options = {}) {
   const config = getConfig();
-  if (!config.autoGithubSync || !config.syncFunction || !currentConfigIsComplete(config) || !getSupabase()) return;
+  if (!stateRef.githubSyncAvailable || !config.autoGithubSync || !config.syncFunction || !currentConfigIsComplete(config) || !getSupabase()) return;
   stateRef.pendingGithubOptions = mergeGithubOptions(stateRef.pendingGithubOptions, options);
   stateRef.githubSyncRequested = true;
   window.clearTimeout(stateRef.githubSyncTimer);
@@ -939,7 +981,7 @@ async function flushGithubSync() {
   if (stateRef.githubSyncInFlight) return;
   const config = getConfig();
   const supabase = getSupabase();
-  if (!config.autoGithubSync || !config.syncFunction || !supabase) return;
+  if (!stateRef.githubSyncAvailable || !config.autoGithubSync || !config.syncFunction || !supabase) return;
 
   stateRef.githubSyncInFlight = true;
   try {
@@ -957,7 +999,7 @@ async function flushGithubSync() {
       });
 
       if (error) {
-        setStatus(`Supabase mentve. GitHub háttérmentés hiba: ${error.message || 'ismeretlen'}`, 'warning');
+        disableGithubSyncTemporarily(`Supabase mentve. A GitHub háttérmentés most nem elérhető (${error.message || 'ismeretlen'}), de a szerkesztés megy tovább.`);
         return;
       }
 
@@ -1029,8 +1071,9 @@ async function testSupabaseConnection() {
     if (config.autoGithubSync && config.syncFunction) {
       const probe = await supabase.functions.invoke(config.syncFunction, { body: { dryRun: true } });
       if (probe.error) {
-        setStatus(`Supabase rendben, de a GitHub sync function hibázik: ${probe.error.message || 'ismeretlen'}`, 'warning');
+        disableGithubSyncTemporarily(`Supabase rendben. A GitHub háttérmentés most nem elérhető (${probe.error.message || 'ismeretlen'}), de a szerkesztés és a realtime működik.`);
       } else {
+        enableGithubSyncAgain();
         setStatus('Supabase és GitHub sync function rendben.', 'success');
       }
     } else {
@@ -1123,14 +1166,19 @@ async function bootstrap() {
       stateRef.state = mergedState;
       stateRef.remoteRevision = Number(remoteRow.revision || 0);
       stateRef.syncedVersion = stateRef.localVersion;
+      if (isStateEffectivelyEmpty(stateRef.state) && isStateEffectivelyEmpty(staticState) && isStateEffectivelyEmpty(localDraft)) {
+        stateRef.state = buildStarterState();
+        stateRef.hasUnsavedLocalChanges = true;
+      }
       saveLocalDraft();
       setSource('Supabase élő adat');
       setStatus('Supabase adat betöltve.', 'success');
       subscribeRealtime();
+      enableGithubSyncAgain();
       loaded = true;
 
       const remoteFingerprint = stateFingerprint(normalizeState(remoteRow.data));
-      const mergedFingerprint = stateFingerprint(mergedState);
+      const mergedFingerprint = stateFingerprint(stateRef.state);
       if (mergedFingerprint !== remoteFingerprint) {
         stateRef.hasUnsavedLocalChanges = true;
         requestRemoteSave({ immediate: true, reason: 'Első összehangolás', triggerGithub: true, immediateGithub: true, forceBackup: true });
@@ -1149,9 +1197,20 @@ async function bootstrap() {
   }
 
   if (!loaded) {
-    stateRef.state = staticState;
-    setSource('Statikus fájl');
-    setStatus('Kezdőadat betöltve.', 'success');
+    if (isStateEffectivelyEmpty(staticState) && isStateEffectivelyEmpty(localDraft)) {
+      stateRef.state = buildStarterState();
+      stateRef.hasUnsavedLocalChanges = true;
+      saveLocalDraft();
+      setSource('Kezdőadat');
+      setStatus('Létrehoztam egy kezdő tantárgyat és oldalt, hogy egyből tudj szerkeszteni.', 'success');
+      if (currentConfigIsComplete(config)) {
+        requestRemoteSave({ immediate: true, reason: 'Kezdőadat létrehozása', triggerGithub: true, immediateGithub: true, forceBackup: true });
+      }
+    } else {
+      stateRef.state = staticState;
+      setSource('Statikus fájl');
+      setStatus('Kezdőadat betöltve.', 'success');
+    }
   }
 
   ensureSelectionValid();
@@ -1301,6 +1360,7 @@ function bindEvents() {
     const config = saveConfig(readFormConfig());
     populateConfigForm(config);
     resetSupabaseClient();
+    enableGithubSyncAgain();
     saveLocalDraft(stateRef.state);
     bootstrap();
     setStatus('Supabase beállítás elmentve.', 'success');
