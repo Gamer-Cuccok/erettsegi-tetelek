@@ -40,8 +40,8 @@
             <input id="sbBucket" type="text" value="page-images" autocomplete="off" />
           </label>
           <label>
-            <span>GitHub sync function</span>
-            <input id="syncFunctionName" type="text" value="sync-github" autocomplete="off" />
+            <span>GitHub sync function (opcionális)</span>
+            <input id="syncFunctionName" type="text" placeholder="pl. sync-github" autocomplete="off" />
           </label>
           <label>
             <span>GitHub owner</span>
@@ -73,7 +73,7 @@
             <input id="preferRemoteToggle" type="checkbox" checked />
             <span>Induláskor a Supabase legyen az elsődleges adatforrás</span>
           </label>
-          <p class="muted tiny">A valós idejű közös adat a Supabase-ben van. A GitHub mentés mehet Edge Functionnel vagy közvetlenül a GitHub API-val is.</p>
+          <p class="muted tiny">A valós idejű közös adat a Supabase-ben van. A GitHub mentéshez elég a GitHub owner + repo + token is. A sync function csak opcionális.</p>
         </div>
       </div>
 
