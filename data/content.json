@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updatedAt": "2026-03-31T17:27:15.757Z",
+  "updatedAt": "2026-03-31T19:19:05.772Z",
   "subjects": [
     {
       "id": "subject_10bb32b1-9899-4546-b958-d790ce6c1e75",
@@ -49,14 +49,14 @@
       "id": "subject_f5a14d70-bed8-4f2c-8b6e-9a704758dc5e",
       "title": "Irodalom",
       "createdAt": "2026-03-22T07:59:17.917Z",
-      "updatedAt": "2026-03-31T17:06:40.237Z",
+      "updatedAt": "2026-03-31T18:58:24.406Z",
       "pages": [
         {
           "id": "page_76bab05b-9bb9-47c7-ad16-1eeb0b277c56",
           "title": "Andrássy Réka",
-          "content": "&nbsp; &nbsp; &nbsp;Andrássy Réka a kortárs Magyar irodalom kiemelkedő alkotója, aki eleinte grafikus majd kiemelkedő iró és költő lett. Első kötete a Lehetetlen Bakancslista cimmel 2018-ban, de további művei közé tartozik a Belső partokon és a Minden körbeér egyszer.",
+          "content": "&nbsp; &nbsp; &nbsp;Andrássy Réka a kortárs Magyar irodalom kiemelkedő alkotója, aki eleinte grafikus majd kiemelkedő iró és költő lett. Első kötete a Lehetetlen Bakancslista cimmel 2018-ban, de további művei közé tartozik a Belső partokon és a Minden körbeér egyszer. Költészetére nagy hatással voltak olyan költők mint Kosztolányi Dezső, Arany János és Radnóti Miklós is, mig kortársai közül Lackfi János és Tóth Krisztina emlithető.<div bis_skin_checked=\"1\">&nbsp; &nbsp; &nbsp;Verseiben gyakran jelennek meg filozófiai kérdések például a boldogság keresése, valamit társadalmi problémák mint például a magány, bántalmazás, és a megbocsájtás. Alkotásai nyelvezete hétköznapi és élőbeszédszerű, hangneme pedig sokszor filozofikus, emelkedett máskor ironikus és groteszk</div>",
           "createdAt": "2026-03-22T07:59:32.140Z",
-          "updatedAt": "2026-03-31T17:06:40.237Z"
+          "updatedAt": "2026-03-31T18:58:24.406Z"
         }
       ]
     }
