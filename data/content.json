@@ -1,12 +1,12 @@
 {
   "version": 3,
-  "updatedAt": "2026-04-20T08:13:00.196Z",
+  "updatedAt": "2026-04-20T16:40:17.677Z",
   "subjects": [
     {
       "id": "subject_10bb32b1-9899-4546-b958-d790ce6c1e75",
       "title": "Töri",
       "createdAt": "2026-03-09T12:13:42.493Z",
-      "updatedAt": "2026-04-05T23:36:05.797Z",
+      "updatedAt": "2026-04-20T12:02:28.975Z",
       "pages": [
         {
           "id": "page_aa6d3829-da84-4f6f-9c47-6747e9616161",
@@ -64,7 +64,7 @@
       "id": "subject_f16be060-9ed6-4986-abdc-b6ee2c33afa9",
       "title": "irásbeli",
       "createdAt": "2026-04-18T17:50:31.283Z",
-      "updatedAt": "2026-04-20T08:13:00.192Z",
+      "updatedAt": "2026-04-20T15:14:59.895Z",
       "pages": [
         {
           "id": "page_078c9786-6400-4259-8b9d-5b6e53c12ba6",
@@ -90,9 +90,44 @@
         {
           "id": "page_79bb6787-870c-4a9a-be1f-710ec003bf1f",
           "title": "Áprilisi törvények és a kiegyezés",
-          "content": "",
+          "content": "<p>&nbsp; &nbsp; &nbsp;Az 1848-as forradalom eredményeként születtek meg az áprilisi törvények, amelyek alapjaiban alakították át Magyarország politikai és társadalmi rendszerét. Megvalósult a jobbágyfelszabadítás (örökváltság), megszűntek a feudális kiváltságok, bevezették a közteherviselést, valamint létrejött a népképviseleti országgyűlés. A végrehajtó hatalmat a felelős magyar kormány gyakorolta, ami jelentős lépést jelentett a polgári átalakulás felé. Magyarország ugyanakkor perszonálunióban maradt a Habsburg Birodalommal.</p><p>&nbsp; &nbsp; &nbsp; Az 1849-es szabadságharc leverése után abszolutista kormányzás következett, amelyet a birodalom meggyengülése és a politikai kompromisszum szükségessége váltott fel. Ennek eredményeként jött létre 1867-ben a kiegyezés, amely létrehozta az Osztrák–Magyar Monarchiát. A megállapodás értelmében Magyarország belső önállóságot kapott, saját országgyűléssel és kormánnyal, míg a külügy, a hadügy és az ezek fedezésére szolgáló pénzügy közös irányítás alatt maradt.</p><p>&nbsp; &nbsp; &nbsp;Összességében az áprilisi törvények megalapozták a polgári átalakulást, míg a kiegyezés biztosította annak tartós működését és a viszonylagos politikai stabilitást.</p>",
           "createdAt": "2026-04-20T08:13:00.192Z",
-          "updatedAt": "2026-04-20T08:13:00.192Z"
+          "updatedAt": "2026-04-20T08:13:37.109Z"
+        },
+        {
+          "id": "page_ed493f9c-09b3-455b-a91b-afbe7352db63",
+          "title": "A felvilágosodás alapelvei",
+          "content": "<p data-start=\"336\" data-end=\"597\">&nbsp; &nbsp; &nbsp;A felvilágosodás a 17–18. században kibontakozó szellemi irányzat volt, amely az emberi ész, a tapasztalat és a tudomány elsődlegességét hangsúlyozta. Célja a hagyományos, tekintélyelvű gondolkodás meghaladása és a társadalom racionális alapokra helyezése volt.</p><p data-start=\"599\" data-end=\"904\">&nbsp; &nbsp; &nbsp;A felvilágosodás egyik fontos eszméje a természetjog gondolata volt, amely szerint minden embert születésétől fogva megilletnek alapvető jogok, például az élethez és a szabadsághoz való jog. Ehhez kapcsolódott a társadalmi szerződés elmélete, amely szerint az állam hatalma az emberek megegyezésén alapul. Montesquieu a hatalmi ágak szétválasztását fogalmazta meg, amely a zsarnokság megakadályozását szolgálta. Voltaire a vallási türelem és a szólásszabadság fontosságát hangsúlyozta. A felvilágosodás eszméi hozzájárultak a modern politikai gondolkodás kialakulásához, és hatással voltak többek között az amerikai függetlenségi nyilatkozatra és a francia forradalom eszméire.</p><p data-start=\"1280\" data-end=\"1436\">&nbsp; &nbsp; &nbsp;Összességében a felvilágosodás az észre és az emberi jogokra épülő új világszemléletet teremtett, amely alapvetően formálta a modern társadalmak fejlődését.</p>",
+          "createdAt": "2026-04-20T12:00:40.112Z",
+          "updatedAt": "2026-04-20T12:00:57.722Z"
+        },
+        {
+          "id": "page_1851070f-d289-4e67-9a44-2f1dc9f12eff",
+          "title": "Első ipari forradalom",
+          "content": "<p>&nbsp; &nbsp; &nbsp;Az első ipari forradalom a 18. század második felében indult el Nagy-Britanniában, és alapjaiban alakította át a gazdaságot és a társadalmat. Kialakulásának feltételei közé tartozott a mezőgazdasági forradalom, a tőkefelhalmozás, a fejlett kereskedelem, valamint a jelentős nyersanyagkészletek, különösen a szén és a vas.&nbsp;</p><p>&nbsp; &nbsp; &nbsp;Az ipari forradalom középpontjában a technikai újítások álltak. A textiliparban megjelentek az új gépek, például a „Spinning Jenny” fonógép és a mechanikus szövőgép, amelyek jelentősen növelték a termelést. James Watt tökéletesítette a gőzgépet, amely lehetővé tette a termelés széles körű gépesítését. Ennek következtében kialakult a gyáripar, és a termelés a manufaktúrákból a gyárakba helyeződött át. A közlekedés is jelentősen fejlődött: megjelentek a gőzhajók és a vasút, ami felgyorsította az áruszállítást és a gazdasági kapcsolatokat. Az ipari forradalom hatására felgyorsult az urbanizáció, nőtt a városok népessége, és kialakult az ipari munkásság. Ugyanakkor a társadalmi különbségek is erősödtek.</p><p>&nbsp; &nbsp; &nbsp;Összességében az első ipari forradalom alapvető változásokat hozott, mivel megteremtette a modern ipari társadalom alapjait, és hosszú távon meghatározta a gazdasági fejlődés irányát.</p>",
+          "createdAt": "2026-04-20T12:01:23.301Z",
+          "updatedAt": "2026-04-20T12:01:25.493Z"
+        },
+        {
+          "id": "page_026f448c-eab4-4371-8bdf-7cba4d64f249",
+          "title": "Hunyadi Mátyás (Hosszú)",
+          "content": "<p data-start=\"166\" data-end=\"466\">&nbsp; &nbsp; &nbsp;Hunyadi Mátyás 1458-ban került a magyar trónra, amikor a rendek a Duna jegén királlyá választották. Uralkodása a középkori Magyar Királyság egyik legjelentősebb időszaka volt, amelynek célja az erős, központosított királyi hatalom kiépítése, valamint az ország katonai és gazdasági megerősítése volt.</p><p data-start=\"468\" data-end=\"949\">&nbsp; &nbsp; &nbsp;Mátyás belpolitikájának középpontjában a királyi hatalom megszilárdítása állt. Tudatosan törekedett arra, hogy csökkentse a nagybirtokos bárók befolyását, és helyettük inkább a hozzá hű, képzett hivatalnokokra és az alsóbb nemességre támaszkodjon. Ennek érdekében átszervezte a királyi tanácsot és az államigazgatást, valamint több fontos tisztséget nem arisztokratákra bízott. Célja egy olyan központosított államhatalom létrehozása volt, amelyben a király döntő szerepet játszik. A hatékony kormányzás egyik alapja a stabil pénzügyi háttér volt. Mátyás ezért megreformálta az adórendszert, és rendszeressé tette a rendkívüli hadiadó beszedését. Emellett más adók behajtását is szigorúbbá és hatékonyabbá tette, aminek következtében jelentősen megnövekedtek a királyi bevételek. Ezek a bevételek tették lehetővé egy állandó, zsoldosokból álló hadsereg fenntartását, amelyet fekete seregnek nevezünk. Ez a hadsereg Európa egyik legütőképesebb katonai ereje volt, és nagy szerepet játszott Mátyás sikereiben. Külpolitikájában Mátyás kettős stratégiát követett. A déli határokon a növekvő Oszmán Birodalom miatt elsősorban védekező politikát folytatott, és megerősítette a végvárrendszert, amely a török előretörés feltartóztatását szolgálta. Ezzel szemben nyugaton aktív hódító politikát folytatott. Sikeres hadjáratokat vezetett Csehország ellen, majd Ausztria területére is benyomult. Uralkodásának egyik legnagyobb sikere Bécs 1485-ös elfoglalása volt, amellyel jelentősen megerősítette hatalmát a térségben. Mátyás célja egy közép-európai nagyhatalmi központ létrehozása volt Magyarország vezetésével, azonban ezt hosszú távon nem tudta megvalósítani. Bár uralma alatt Magyarország jelentős európai tényezővé vált, ez a hatalom nagyrészt személyéhez kötődött, és nem vált tartós államszervezeti alapokká. Uralkodása idején jelentős kulturális fejlődés is végbement. Mátyás udvara a reneszánsz és a humanizmus egyik közép-európai központjává vált, mivel a király támogatta az itáliai mintájú műveltséget és tudományokat. Híres könyvtára, a Bibliotheca Corvina, Európa egyik leggazdagabb könyvgyűjteménye volt, amely a korszak szellemi és művészeti fejlődésének kiemelkedő jelképe lett. Mátyás 1490-ben bekövetkezett halála után uralkodása eredményei gyorsan meggyengültek. Mivel nem volt törvényes trónörököse, a központi hatalom szétesett, a fekete sereg felbomlott, és a korábban megszerzett területek nagy része elveszett. Az ország ismét a rendi anarchia felé sodródott.</p><p data-start=\"2951\" data-end=\"3299\">&nbsp; &nbsp; &nbsp;Összességében Hunyadi Mátyás uralkodása a középkori Magyarország egyik csúcspontját jelentette. Erős központi hatalmat hozott létre, modern hadsereget épített ki, és Magyarországot rövid időre európai nagyhatalmi tényezővé tette. Kulturális téren pedig a reneszánsz eszméinek hazai elterjesztésével maradandó hatást gyakorolt a magyar történelemre.</p>",
+          "createdAt": "2026-04-20T12:02:01.157Z",
+          "updatedAt": "2026-04-20T12:02:14.158Z"
+        },
+        {
+          "id": "page_dc9c29d7-d62b-473d-abfa-5ce316fb5c99",
+          "title": "Németország az első világháborúban",
+          "content": "<p data-start=\"128\" data-end=\"548\">&nbsp; &nbsp; &nbsp; Németország az első világháborúban a Központi Hatalmak egyik meghatározó állama volt, és 1914-ben lépett be a háborúba az Osztrák–Magyar Monarchia szövetségeseként. A német hadvezetés gyors győzelemben bízott, amelyet a Schlieffen-terv alapján Franciaország gyors legyőzésével kívánt elérni. A terv azonban a marne-i csatában kudarcot vallott, így a villámháború helyett elhúzódó állóháború alakult ki a nyugati fronton.</p>\n<p data-start=\"550\" data-end=\"943\">&nbsp; &nbsp; &nbsp;A háború két fő fronton zajlott: nyugaton Németország Franciaországgal és Nagy-Britanniával, keleten pedig Oroszországgal harcolt. Bár Oroszország 1917-ben a belső forradalmak miatt kivált a háborúból (Breszt-litovszki béke), Németország helyzete nem javult érdemben, mivel 1917-ben az Egyesült Államok is belépett az antant oldalán, ami jelentős katonai és gazdasági erőfölényt eredményezett. A hosszú háború súlyos gazdasági és társadalmi válságot okozott Németországban: élelmiszerhiány, infláció és elégedetlenség alakult ki a lakosság körében. 1918-ra a katonai vereségek és a belső válságok következtében összeomlott a német hadsereg és az államhatalom.</p>\n<p data-start=\"1212\" data-end=\"1454\">&nbsp; &nbsp; &nbsp;1918 novemberében Németország fegyverszünetet kért, kitört a novemberi forradalom, II. Vilmos császár lemondott, és megszűnt a monarchia. A háború Németország vereségével ért véget, amelyet később a versailles-i békeszerződés is megerősített.</p>",
+          "createdAt": "2026-04-20T12:09:19.712Z",
+          "updatedAt": "2026-04-20T12:10:09.595Z"
+        },
+        {
+          "id": "page_b7ad6dd4-d2cc-4ee7-9d84-63af32c6011b",
+          "title": "Szent István államszervezete",
+          "content": "<p data-start=\"468\" data-end=\"714\">&nbsp; &nbsp; &nbsp;Szent István (I. István) uralkodása alatt, a 10–11. század fordulóján alakult ki a magyar keresztény királyság államszervezete. Célja a magyarság beillesztése volt a keresztény Európa államrendszerébe, valamint egy erős, központosított királyi hatalom kiépítése, amely biztosította az állam hosszú távú fennmaradását.</p>\n<p data-start=\"595\" data-end=\"971\">&nbsp; &nbsp; &nbsp;István egyik legfontosabb intézkedése az egyházszervezet kiépítése volt. Az országban püspökségeket hozott létre, köztük az esztergomi és kalocsai érsekséget, amelyek élén érsekek álltak. Az egyházszervezet nemcsak vallási, hanem politikai szempontból is kulcsszerepet játszott, mivel támogatta a király hatalmát és segítette a kereszténység elterjesztését a lakosság körében. Az államszervezés másik alapja a vármegyerendszer kialakítása volt. István az országot vármegyékre osztotta, amelyek élén az ispán állt, akit a király nevezett ki. A vármegyék katonai, közigazgatási és gazdasági egységek voltak, és a királyi hatalom helyi megszilárdítását szolgálták. Ezzel István a hatalmat központosított formában tudta gyakorolni az egész ország területén. István uralkodásának fontos eleme volt a kereszténység államvallássá tétele. Kötelezővé tette a templomépítést, a vasárnapi mise látogatását, valamint a keresztény szokások betartását. Törvényei szabályozták a társadalmi életet, és szigorúan felléptek a pogány szokásokkal szemben. Ezek az intézkedések hozzájárultak a keresztény állami rend megszilárdulásához.</p>\n<p data-start=\"1714\" data-end=\"2056\">&nbsp; &nbsp; &nbsp;Összességében Szent István államszervező tevékenysége egy erős, központosított keresztény királyság létrejöttét eredményezte. Az egyházszervezet és a vármegyerendszer kiépítésével olyan államot hozott létre, amely hosszú távon biztosította Magyarország fennmaradását és beilleszkedését a keresztény Európa politikai és kulturális rendszerébe.</p>",
+          "createdAt": "2026-04-20T12:15:25.123Z",
+          "updatedAt": "2026-04-20T15:14:59.895Z"
         }
       ]
     }
@@ -103,6 +138,21 @@
       "id": "page_8480a907-0648-476b-9da1-de8d4a459431",
       "subjectId": "subject_10bb32b1-9899-4546-b958-d790ce6c1e75",
       "updatedAt": "2026-03-26T13:23:16.235Z"
+    },
+    {
+      "id": "page_a1484e5c-f474-40b1-8991-6584ecadab2a",
+      "subjectId": "subject_10bb32b1-9899-4546-b958-d790ce6c1e75",
+      "updatedAt": "2026-04-20T12:01:36.284Z"
+    },
+    {
+      "id": "page_e9cb3d22-134d-4da4-aea3-22f9d8e60b5d",
+      "subjectId": "subject_10bb32b1-9899-4546-b958-d790ce6c1e75",
+      "updatedAt": "2026-04-20T12:01:40.476Z"
+    },
+    {
+      "id": "page_2456150f-aebd-4cb2-b4ce-3d0f049a9f8f",
+      "subjectId": "subject_10bb32b1-9899-4546-b958-d790ce6c1e75",
+      "updatedAt": "2026-04-20T12:02:28.975Z"
     }
   ]
 }
