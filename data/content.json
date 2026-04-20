@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updatedAt": "2026-04-19T10:42:56.268Z",
+  "updatedAt": "2026-04-20T08:04:59.750Z",
   "subjects": [
     {
       "id": "subject_10bb32b1-9899-4546-b958-d790ce6c1e75",
@@ -64,7 +64,7 @@
       "id": "subject_f16be060-9ed6-4986-abdc-b6ee2c33afa9",
       "title": "irásbeli",
       "createdAt": "2026-04-18T17:50:31.283Z",
-      "updatedAt": "2026-04-19T10:42:56.265Z",
+      "updatedAt": "2026-04-19T19:23:28.426Z",
       "pages": [
         {
           "id": "page_078c9786-6400-4259-8b9d-5b6e53c12ba6",
@@ -76,9 +76,16 @@
         {
           "id": "page_74c1f820-daa1-45ec-93ff-dc8d5ad29f38",
           "title": "A levantei kereskedelem",
-          "content": "",
+          "content": "&nbsp; &nbsp; &nbsp;A Levantei kereskedelem a Középkori Európa egyik legjelentősebb kereskedelmi rendszere volt, amely a Földközi-tenger keleti medencéjében, az úgynevezett Levante térségében bonyolódott. Ez a kereskedelmi forma a 11-15. század között élte virágkorát, és meghatározó szerepet játszott az európai gazdaság és kultúra fejlődésében.&nbsp;<div>&nbsp; &nbsp; &nbsp;A Levante a Földközi-tenger keleti partvidékét jelenti, amely magában foglalja a mai Libanon, Egyiptom, Sziria, Izrael területét. Az európai oldalon elsősorban itáliai városállamok tartották kezükben a kereskedelmet. A tengeri útvonalak mellett szárazföldi karavánútvonalak is kapcsolódtak a rendszerhez, amely útvonalak Közép-Ázsiáig és Kináig nyúltak. A kereskedelem lebonyolitásában kulcsszerepet játszottak az úgynevezett fondacók, amely raktárként, szálláshelyként és kereskedelmi központként szolgáltak. A levantei kereskedelem árucikkei rendkivül változatos volt, ide tartoztak a fűszerek, luxustextilliák, illatszerek, drágakövek és nemesfémek, cukor és egyéb élelmiszerek.</div><div>&nbsp; &nbsp; &nbsp;Összességében a levantei kereskedelem kulcsszerepet játszott a középkori Európa gazdasági fejlődésében, mivel lehetővé tette a távoli térségek közötti árucsere és kulturális kapcsolatok kialakulását. Jelentősen hozzájárult az itáliai városállamok megerősödéséhez, valamint a kereskedelem és a pénzgazdálkodás fejlődéséhez. Bár a nagy földrajzi felfedezések következtében jelentősége később csökkent, hatása hosszú távon is meghatározó maradt az európai gazdaság és kereskedelem alakulásában.</div>",
           "createdAt": "2026-04-19T10:42:56.265Z",
-          "updatedAt": "2026-04-19T10:42:56.265Z"
+          "updatedAt": "2026-04-19T17:50:53.221Z"
+        },
+        {
+          "id": "page_b6ddf548-f43e-4df8-938f-702edb96c7a7",
+          "title": "Honfoglalás",
+          "content": "&nbsp; &nbsp;A honfoglalás alatt a magyar nép Etelközből a Kárpát-medencébe történő beköltözését értjük. Az okok között említhető, hogy az Etelköz sík területe nehezen volt védhető, szemben a Kárpátok hegyei által körülzárt medencével, amely kedvezőbb feltételeket biztosított a megtelepedéshez. A 9. század végén a magyarok már kapcsolatba kerültek a térség népeivel, és fokozatosan elfoglalták a Kárpát-medence területét.<div>&nbsp; &nbsp; &nbsp;895-ben a magyarokat váratlan besenyő támadás érte, amely hozzájárult ahhoz, hogy véglegesen a Kárpát-medencébe költözzenek. A honfoglalás több lépcsőben zajlott le, és nem egyetlen eseményhez köthető. A magyar társadalom alapját a nagycsaládok alkották, amelyekből nemzetségek, majd törzsek szerveződtek, végül törzsszövetséget hoztak létre. Az elfoglalt területeket gyepű védte, amely egy lakatlan határvidék volt. A magyarság félnomád életmódot folytatott, gazdálkodásának alapját az állattenyésztés képezte, és évszakonként váltogatta szálláshelyeit. Hitvilágukra jellemző volt a túlvilági életbe vetett hit, amit a gazdag mellékletekkel ellátott temetkezések is bizonyítanak. A 10. században a magyarok kalandozó hadjáratokat vezettek Európa különböző területeire, amelyek során könnyűlovasságuk gyorsaságára és harcmodorára támaszkodtak.</div><div>&nbsp; &nbsp; &nbsp;Összességében a honfoglalás meghatározó jelentőségű esemény volt a magyarság történetében, mivel ekkor alakult ki a magyar állam későbbi területi alapja. A Kárpát-medence kedvező adottságai lehetővé tették a tartós megtelepedést, és megalapozták a későbbi államszervezést.</div>",
+          "createdAt": "2026-04-19T18:01:37.867Z",
+          "updatedAt": "2026-04-19T19:23:28.426Z"
         }
       ]
     }
